@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Old Soul | Sourdough Food Truck</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <style>
+        /* --- Design System Variables --- */
+        :root {
+            --surface: #fef9ed; /* Parchment */
+            --on-surface: #1d1c15; /* Charred Black */
+            --primary: #9e2016; /* Tomato Red */
+            --primary-hover: #ba1a1a;
+            --tertiary: #005f2f; /* Basil Green */
+            --inverse-surface: #22201a;
+            
+            --font-display: 'Playfair Display', serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            
+            --radius-btn: 0.25rem;
+            --radius-card: 1rem;
+            --section-gap: 100px;
+        }
+
+        /* --- Base Styles --- */
+        body {
+            font-family: var(--font-body);
+            background-color: var(--surface);
+            color: var(--on-surface);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6, .display-font {
+            font-family: var(--font-display);
+            font-weight: 700;
+        }
+
+        .text-primary-brand { color: var(--primary); }
+        .bg-dark-brand { background-color: var(--inverse-surface); color: var(--surface); }
+        
+        /* --- Loader: Pizza going into oven --- */
+        #loader-wrapper {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background-color: var(--inverse-surface);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        .oven-scene {
+            position: relative;
+            width: 200px;
+            height: 150px;
+            border-bottom: 10px solid #444;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            overflow: hidden;
+        }
+
+        /* The Oven Arc */
+        .oven-arch {
+            position: absolute;
+            bottom: 0;
+            width: 160px;
+            height: 120px;
+            background: #111;
+            border-top-left-radius: 80px;
+            border-top-right-radius: 80px;
+            border: 8px solid #555;
+            border-bottom: none;
+            box-shadow: inset 0 -20px 40px rgba(255, 69, 0, 0.1);
+            animation: ovenGlow 2.5s infinite alternate;
+        }
+
+        /* The Pizza */
+        .loader-pizza {
+            position: absolute;
+            bottom: -30px;
+            width: 80px;
+            height: 25px;
+            background: #eebb66;
+            border-radius: 50%;
+            border: 3px solid #c88a3a;
+            transform: perspective(300px) rotateX(60deg) translateY(100px);
+            animation: slideIntoOven 2.5s ease-in-out infinite;
+        }
+
+        /* Pizza toppings (pepperoni) */
+        .loader-pizza::before, .loader-pizza::after {
+            content: '';
+            position: absolute;
+            background: var(--primary);
+            border-radius: 50%;
+            width: 10px; height: 6px;
+        }
+        .loader-pizza::before { top: 5px; left: 15px; }
+        .loader-pizza::after { top: 8px; right: 20px; }
+
+        @keyframes slideIntoOven {
+            0% { transform: perspective(300px) rotateX(60deg) translateY(150px) scale(1.2); filter: brightness(1); }
+            40% { transform: perspective(300px) rotateX(60deg) translateY(20px) scale(0.9); filter: brightness(1); }
+            60% { transform: perspective(300px) rotateX(60deg) translateY(20px) scale(0.9); filter: brightness(0.6) sepia(0.4); } /* Baking */
+            100% { transform: perspective(300px) rotateX(60deg) translateY(20px) scale(0.9); filter: brightness(0.5) sepia(0.6); opacity: 0;}
+        }
+
+        @keyframes ovenGlow {
+            0% { box-shadow: inset 0 -10px 30px rgba(255, 69, 0, 0.2); }
+            100% { box-shadow: inset 0 -40px 60px rgba(255, 69, 0, 0.8), inset 0 -10px 20px rgba(255, 215, 0, 0.5); }
+        }
+
+        .loader-text {
+            margin-top: 30px;
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: var(--surface);
+            font-style: italic;
+            letter-spacing: 0.05em;
+        }
+
+        /* --- Floating Navbar --- */
+        .navbar-wrapper {
+            position: fixed;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            z-index: 1030;
+            padding: 0 20px;
+            transition: all 0.4s ease;
+        }
+
+        .navbar {
+            background-color: rgba(254, 249, 237, 0.85);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 50px;
+            padding: 10px 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border: 1px solid rgba(29, 28, 21, 0.05);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .navbar-brand {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1.8rem;
+            color: var(--primary) !important;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-link {
+            font-family: var(--font-body);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.8rem;
+            color: var(--on-surface) !important;
+            margin: 0 15px;
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0; height: 2px;
+            bottom: -2px; left: 0;
+            background-color: var(--primary);
+            transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .nav-link:hover::after { width: 100%; }
+
+        /* --- Buttons --- */
+        .btn-brand {
+            background-color: var(--primary);
+            color: var(--surface);
+            border-radius: 50px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.8rem;
+            padding: 12px 28px;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(158, 32, 22, 0.3);
+        }
+        .btn-brand:hover {
+            background-color: var(--inverse-surface);
+            color: var(--surface);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* --- Hero Section (Cinematic) --- */
+        .hero {
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            color: var(--surface);
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: url('https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2070&auto=format&fit=crop') center/cover;
+            animation: kenBurns 20s ease-out infinite alternate;
+            z-index: -2;
+        }
+        
+        .hero-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(29, 28, 21, 0.9) 0%, rgba(29, 28, 21, 0.4) 100%);
+            z-index: -1;
+        }
+
+        @keyframes kenBurns {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        .hero-quote {
+            font-family: var(--font-display);
+            font-style: italic;
+            color: var(--primary);
+            font-size: 1.2rem;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+            display: inline-block;
+            border-bottom: 1px solid var(--primary);
+            padding-bottom: 5px;
+        }
+
+        .hero-title {
+            font-size: clamp(3.5rem, 8vw, 7rem);
+            line-height: 1;
+            letter-spacing: -0.03em;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* --- Story Section --- */
+        .section-padding { padding: var(--section-gap) 0; }
+        
+        .story-img-wrapper {
+            position: relative;
+            border-radius: var(--radius-card);
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        }
+        
+        .story-img-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
+            border-radius: var(--radius-card);
+            pointer-events: none;
+        }
+
+        .story-img-wrapper img {
+            width: 100%;
+            height: auto;
+            transition: transform 0.7s ease;
+        }
+        
+        .story-img-wrapper:hover img {
+            transform: scale(1.05);
+        }
+
+        /* --- Modern Menu Collage --- */
+        .menu-section {
+            background-color: var(--inverse-surface);
+            color: var(--surface);
+            position: relative;
+        }
+
+        .menu-section::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(254, 249, 237, 0.3), transparent);
+        }
+
+        .collage-card {
+            position: relative;
+            border-radius: var(--radius-card);
+            overflow: hidden;
+            height: 100%;
+            min-height: 300px;
+            cursor: pointer;
+            group: hover;
+        }
+
+        .collage-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .collage-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 50%, transparent 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 2rem;
+            transition: background 0.4s ease;
+        }
+
+        .collage-card:hover img { transform: scale(1.08); }
+        .collage-card:hover .collage-overlay { background: linear-gradient(to top, rgba(158, 32, 22, 0.9) 0%, rgba(0,0,0,0.4) 60%, transparent 100%); }
+
+        .menu-title {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            color: var(--surface);
+        }
+
+        .menu-desc {
+            font-size: 0.9rem;
+            color: rgba(254, 249, 237, 0.7);
+            margin-bottom: 1rem;
+            transform: translateY(10px);
+            opacity: 0;
+            transition: all 0.4s ease;
+        }
+        
+        .collage-card:hover .menu-desc {
+            transform: translateY(0);
+            opacity: 1;
+            color: var(--surface);
+        }
+
+        .menu-price {
+            position: absolute;
+            top: 20px; right: 20px;
+            background: var(--surface);
+            color: var(--on-surface);
+            font-family: var(--font-display);
+            font-weight: 700;
+            padding: 8px 15px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-size: 1.1rem;
+        }
+
+        .chip {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            backdrop-filter: blur(5px);
+        }
+        .chip-veg { background-color: rgba(0, 95, 47, 0.3); color: #a1ffb8; border: 1px solid rgba(161, 255, 184, 0.3); }
+        .chip-spicy { background-color: rgba(158, 32, 22, 0.4); color: #ffb4a9; border: 1px solid rgba(255, 180, 169, 0.3); }
+
+        /* --- Testimonials Section --- */
+        .testimonials {
+            background-color: var(--surface);
+            position: relative;
+        }
+        
+        .quote-icon {
+            font-family: var(--font-display);
+            font-size: 6rem;
+            color: var(--primary);
+            opacity: 0.2;
+            line-height: 0;
+            position: absolute;
+            top: -20px; left: -20px;
+        }
+
+        .review-card {
+            background: white;
+            padding: 3rem 2rem;
+            border-radius: var(--radius-card);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.04);
+            position: relative;
+            height: 100%;
+            transition: transform 0.3s ease;
+        }
+        
+        .review-card:hover { transform: translateY(-5px); }
+
+        .review-text {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-style: italic;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            color: var(--inverse-surface);
+        }
+
+        .reviewer-name {
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.85rem;
+            color: var(--primary);
+        }
+
+        /* --- Creative Footer --- */
+        footer {
+            background-color: var(--inverse-surface);
+            color: var(--surface);
+            padding: 80px 0 40px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .footer-brand {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            line-height: 1;
+            margin-bottom: 1rem;
+            color: var(--surface);
+        }
+
+        .footer-quote {
+            font-family: var(--font-display);
+            font-style: italic;
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-links a {
+            color: rgba(254, 249, 237, 0.6);
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.8rem;
+            font-weight: 700;
+            display: block;
+            margin-bottom: 10px;
+            transition: color 0.3s;
+        }
+        .footer-links a:hover { color: var(--primary); }
+
+        .footer-divider {
+            height: 1px;
+            background: rgba(254, 249, 237, 0.1);
+            margin: 40px 0;
+        }
+        
+        /* Decorative giant text in background of footer */
+        .footer-bg-text {
+            position: absolute;
+            bottom: -50px; right: -50px;
+            font-family: var(--font-display);
+            font-size: 15rem;
+            color: rgba(254, 249, 237, 0.03);
+            line-height: 1;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader-wrapper">
+        <div class="oven-scene">
+            <div class="oven-arch"></div>
+            <div class="loader-pizza"></div>
+        </div>
+        <div class="loader-text">Firing up the oven...</div>
+    </div>
+
+    <div class="navbar-wrapper">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container-fluid px-lg-3">
+                <a class="navbar-brand" href="#">Old Soul</a>
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-toggle="target" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                    <ul class="navbar-nav align-items-center">
+                        <li class="nav-item"><a class="nav-link" href="#story">Story</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#menu">Menu</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#testimonials">Reviews</a></li>
+                        <li class="nav-item ms-lg-4 mt-3 mt-lg-0">
+                            <button class="btn-brand">Order Now</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <section class="hero text-center text-md-start">
+        <div class="hero-bg"></div>
+        <div class="hero-overlay"></div>
+        <div class="container position-relative z-1">
+            <div class="row">
+                <div class="col-lg-9 col-md-11 pt-5">
+                    <span class="hero-quote" data-aos="fade-up" data-aos-delay="600">"La vita è una combinazione di magia e pasta." - Fellini</span>
+                    <h1 class="hero-title" data-aos="fade-up" data-aos-delay="800">The Old Soul of<br>Italian Street Food.</h1>
+                    <p class="lead w-md-75 mb-5 text-white-50" data-aos="fade-up" data-aos-delay="1000" style="font-size: 1.25rem;">Slow-fermented sourdough, San Marzano tomatoes, and 90 seconds in a blazing 450°C wood-fired oven. Pure, unapologetic tradition.</p>
+                    <div data-aos="fade-up" data-aos-delay="1200">
+                        <a href="#menu" class="btn-brand px-5 py-3" style="font-size: 1rem;">Explore La Carta</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="story" class="section-padding">
+        <div class="container">
+            <div class="row align-items-center gy-5">
+                <div class="col-lg-5" data-aos="fade-right">
+                    <div class="story-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1590947132387-155cc02f3212?q=80&w=2070&auto=format&fit=crop" alt="Chef tossing pizza dough">
+                    </div>
+                </div>
+                <div class="col-lg-6 offset-lg-1" data-aos="fade-left">
+                    <div class="text-primary-brand mb-4" style="font-size: 2rem;">🔥</div>
+                    <h2 class="display-font mb-4" style="font-size: 3rem; line-height: 1.1;">Rooted in Tradition,<br>Served with Speed.</h2>
+                    <p class="mb-4" style="font-size: 1.1rem; color: #59413d;">Old Soul was born from a simple belief: the soul of a slow-cooked Italian tradition deserves to be enjoyed amidst the pace of modern city life. We source our San Marzano tomatoes directly from Campania and let our sourdough ferment for 48 hours to achieve that perfect, cloud-like cornicione.</p>
+                    <p style="font-size: 1.1rem; color: #59413d;">Our custom-built wood-fired oven is the beating heart of our truck. It's not just street food; it's a mobile trattoria bringing the timeless streets of Naples to your neighborhood.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="menu" class="section-padding menu-section">
+        <div class="container">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-5" data-aos="fade-up">
+                <div>
+                    <span class="text-primary-brand text-uppercase fw-bold letter-spacing-wide mb-2 d-block" style="letter-spacing: 0.2em; font-size: 0.8rem;">Our Craft</span>
+                    <h2 class="display-font m-0" style="font-size: 3.5rem;">La Carta</h2>
+                </div>
+                <div class="mt-4 mt-md-0">
+                    <p class="text-white-50 m-0" style="max-width: 300px; text-align: right;">Every pizza is stretched by hand and fired to order.</p>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
+                    <div class="collage-card">
+                        <img src="https://images.unsplash.com/photo-1574071318508-1cdbab80d002?q=80&w=2069&auto=format&fit=crop" alt="Margherita Verace">
+                        <div class="menu-price">$14</div>
+                        <div class="collage-overlay">
+                            <div>
+                                <h3 class="menu-title">Margherita Verace</h3>
+                                <p class="menu-desc">San Marzano DOP, fior di latte, fresh basil, extra virgin olive oil. The undisputed classic.</p>
+                                <span class="chip chip-veg">Vegetarian</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6">
+                    <div class="row g-4 h-100">
+                        <div class="col-12 h-50" data-aos="fade-up" data-aos-delay="200">
+                            <div class="collage-card" style="min-height: 250px;">
+                                <img src="https://images.unsplash.com/photo-1628840042765-356cda07504e?q=80&w=2080&auto=format&fit=crop" alt="Diavola Sulla Strada">
+                                <div class="menu-price">$16</div>
+                                <div class="collage-overlay">
+                                    <div>
+                                        <h3 class="menu-title">Diavola</h3>
+                                        <p class="menu-desc">Spicy Calabrian salami, crushed tomatoes, fresh mozzarella, hot honey drizzle.</p>
+                                        <span class="chip chip-spicy">Spicy</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 h-50" data-aos="fade-up" data-aos-delay="300">
+                            <div class="collage-card" style="min-height: 250px;">
+                                <img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2070&auto=format&fit=crop" alt="Tartufo Bianco">
+                                <div class="menu-price">$18</div>
+                                <div class="collage-overlay">
+                                    <div>
+                                        <h3 class="menu-title">Tartufo</h3>
+                                        <p class="menu-desc">White base, roasted mushrooms, truffle cream.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 h-50" data-aos="fade-up" data-aos-delay="400">
+                            <div class="collage-card" style="min-height: 250px;">
+                                <img src="https://images.unsplash.com/photo-1573140247632-f8fd74997d5c?q=80&w=2070&auto=format&fit=crop" alt="Garlic Bread">
+                                <div class="menu-price">$8</div>
+                                <div class="collage-overlay">
+                                    <div>
+                                        <h3 class="menu-title">Garlic Bread</h3>
+                                        <p class="menu-desc">Wood-fired sourdough pull-apart, garlic herb butter, mozzarella.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="testimonials" class="section-padding testimonials">
+        <div class="container">
+            <div class="text-center mb-5" data-aos="fade-up">
+                <span class="text-primary-brand text-uppercase fw-bold mb-2 d-block" style="letter-spacing: 0.2em; font-size: 0.8rem;">Word on the Street</span>
+                <h2 class="display-font" style="font-size: 3rem;">What the Locals Say</h2>
+            </div>
+            
+            <div class="row g-4 justify-content-center">
+                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
+                    <div class="review-card">
+                        <div class="quote-icon">"</div>
+                        <p class="review-text">Easily the best crust I've had outside of Naples. The 48-hour ferment makes it light as air but perfectly charred on the bottom.</p>
+                        <div class="d-flex align-items-center mt-4">
+                            <div class="reviewer-name">James L.</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
+                    <div class="review-card">
+                        <div class="quote-icon">"</div>
+                        <p class="review-text">I stalk this food truck on Instagram just to know where they are parking. The Diavola with hot honey is absolutely life-changing.</p>
+                        <div class="d-flex align-items-center mt-4">
+                            <div class="reviewer-name">Sarah M.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
+                    <div class="review-card">
+                        <div class="quote-icon">"</div>
+                        <p class="review-text">To get this level of culinary quality from a truck in 90 seconds is magic. Old Soul is officially my Friday night ritual.</p>
+                        <div class="d-flex align-items-center mt-4">
+                            <div class="reviewer-name">Marcus T.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-bg-text">OLD SOUL</div>
+        <div class="container position-relative z-1">
+            <div class="row gy-5 justify-content-between">
+                <div class="col-lg-5">
+                    <div class="footer-brand">Old Soul</div>
+                    <div class="footer-quote">"Mangia bene, ridi spesso, ama molto."</div>
+                    <p class="text-white-50 mb-4" style="max-width: 400px;">Authentic Neapolitan street food. Sourdough fermented slowly, baked fast, and served with a lot of heart.</p>
+                    <div class="d-flex gap-3">
+                        <button class="btn-brand">Book the Truck</button>
+                    </div>
+                </div>
+                
+                <div class="col-lg-2 col-md-4">
+                    <h5 class="text-uppercase fw-bold text-white mb-4" style="letter-spacing: 0.1em; font-size: 0.9rem;">Menu</h5>
+                    <div class="footer-links">
+                        <a href="#">Red Pizzas</a>
+                        <a href="#">White Pizzas</a>
+                        <a href="#">Sides</a>
+                        <a href="#">Drinks</a>
+                    </div>
+                </div>
+
+                <div class="col-lg-2 col-md-4">
+                    <h5 class="text-uppercase fw-bold text-white mb-4" style="letter-spacing: 0.1em; font-size: 0.9rem;">Find Us</h5>
+                    <div class="footer-links">
+                        <a href="#">Weekly Schedule</a>
+                        <a href="#">Private Events</a>
+                        <a href="#">Contact</a>
+                    </div>
+                </div>
+
+                <div class="col-lg-2 col-md-4">
+                    <h5 class="text-uppercase fw-bold text-white mb-4" style="letter-spacing: 0.1em; font-size: 0.9rem;">Social</h5>
+                    <div class="footer-links">
+                        <a href="#">Instagram</a>
+                        <a href="#">TikTok</a>
+                        <a href="#">Facebook</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-divider"></div>
+            
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="small text-white-50 mb-0">&copy; 2024 Old Soul Food Truck. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
+                    <p class="small text-white-50 mb-0">Designed for the love of pizza.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <script>
+        // 1. Initialize Scroll Animations
+        AOS.init({
+            duration: 1000,
+            once: true,
+            offset: 50,
+            easing: 'ease-out-cubic'
+        });
+
+        // 2. Handle Loader Fade Out (Wait slightly longer to show off the new oven animation)
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                const loader = document.getElementById('loader-wrapper');
+                loader.style.opacity = '0';
+                loader.style.visibility = 'hidden';
+            }, 1800); 
+        });
+
+        // 3. Navbar scroll effect 
+        window.addEventListener('scroll', function() {
+            const navbarWrapper = document.querySelector('.navbar-wrapper');
+            const navbar = document.querySelector('.navbar');
+            
+            if (window.scrollY > 50) {
+                navbarWrapper.style.top = '10px';
+                navbar.style.boxShadow = '0 15px 40px rgba(0,0,0,0.1)';
+                navbar.style.background = 'rgba(254, 249, 237, 0.95)';
+            } else {
+                navbarWrapper.style.top = '20px';
+                navbar.style.boxShadow = '0 10px 30px rgba(0,0,0,0.05)';
+                navbar.style.background = 'rgba(254, 249, 237, 0.85)';
+            }
+        });
+    </script>
+</body>
+</html>
